@@ -14,7 +14,7 @@ context-preview . --exclude "fixtures/**" --format json
 
 The estimate deliberately uses a transparent four-characters-per-token approximation rather than claiming tokenizer-exact billing. Reports identify binary, non-UTF-8, oversized, and excluded files. Default exclusions cover common build directories, repositories, virtual environments, environment files, and private-key extensions.
 
-The 1.0.1 source candidate excludes `.env`, files ending in `.env`, and `.env.*` variants (including example templates) in root and nested directories before reading their contents. Explicit `--include` patterns do not override default exclusions. This is a filename convention, not a guarantee that every secret-bearing file is excluded.
+Version 1.0.1 excludes `.env`, files ending in `.env`, and `.env.*` variants (including example templates) in root and nested directories before reading their contents. Explicit `--include` patterns do not override default exclusions. This is a filename convention, not a guarantee that every secret-bearing file is excluded.
 
 ## Security boundary
 

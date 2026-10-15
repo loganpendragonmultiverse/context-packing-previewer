@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.1 - Unreleased
+## 1.0.1 - 2026-10-15
 
 - Exclude `.env.*` files in the root and nested directories before reading content, including when explicitly included.
 - Add no-read regression guards and preserve token estimation for ordinary files.
