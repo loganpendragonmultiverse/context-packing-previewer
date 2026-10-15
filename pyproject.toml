@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "context-packing-previewer"
-version = "1.0.0"
+version = "1.0.1"
 description = "Preview files, exclusions, token estimates, and truncation risk before an AI coding session."
 readme = "README.md"
 requires-python = ">=3.10"

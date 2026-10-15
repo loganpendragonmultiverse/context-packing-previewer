@@ -14,6 +14,8 @@ DEFAULT_EXCLUDES = (
     "**/.venv/**",
     "dist/**",
     "**/dist/**",
+    ".env.*",
+    "**/.env.*",
     "*.env",
     "**/*.env",
     "*.pem",
