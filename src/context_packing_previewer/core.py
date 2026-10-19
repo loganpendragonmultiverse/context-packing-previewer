@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import fnmatch
+import html
 import math
+import re
 from pathlib import Path
 from typing import Any
 
@@ -40,15 +42,30 @@ def preview(
     budget: int = 32_000,
     max_file_bytes: int = 1_000_000,
 ) -> dict[str, Any]:
+    if root.is_symlink():
+        raise ValueError("root must not be a symlink")
     if not root.is_dir():
         raise ValueError("root must be a directory")
-    if budget <= 0 or max_file_bytes <= 0:
+    if (
+        type(budget) is not int
+        or type(max_file_bytes) is not int
+        or budget <= 0
+        or max_file_bytes <= 0
+    ):
         raise ValueError("budget and max-file-bytes must be positive")
     patterns = list(DEFAULT_EXCLUDES) + list(excludes or [])
     candidates: dict[str, Path] = {}
     for pattern in includes:
+        if Path(pattern).anchor or ".." in Path(pattern).parts:
+            raise ValueError("include patterns must stay relative to root without .. components")
         for path in root.glob(pattern):
-            if path.is_file() and not path.is_symlink():
+            relative_parts = path.relative_to(root).parts
+            if any(
+                root.joinpath(*relative_parts[:i]).is_symlink()
+                for i in range(1, len(relative_parts) + 1)
+            ):
+                continue
+            if path.is_file():
                 relative = path.relative_to(root).as_posix()
                 candidates[relative] = path
     files: list[dict[str, Any]] = []
@@ -97,6 +114,12 @@ def preview(
     }
 
 
+def _literal(value: Any) -> str:
+    text = re.sub(r"([\\*_{}\[\]()#+!|~-])", r"\\\1", str(value))
+    text = html.escape(text, quote=False)
+    return text.replace("\r", "&#13;").replace("\n", "&#10;").replace(chr(96), "&#96;")
+
+
 def render_markdown(report: dict[str, Any]) -> str:
     lines = [
         "# Context Packing Preview",
@@ -107,10 +130,10 @@ def render_markdown(report: dict[str, Any]) -> str:
         "|---|---:|---:|",
     ]
     lines.extend(
-        f"| `{item['path']}` | {item['bytes']:,} | {item['estimated_tokens']:,} |"
+        f"| {_literal(item['path'])} | {item['bytes']:,} | {item['estimated_tokens']:,} |"
         for item in report["files"]
     )
     if report["omitted"]:
         lines.extend(["", "## Omitted", ""])
-        lines.extend(f"- `{item['path']}` — {item['reason']}" for item in report["omitted"])
+        lines.extend(f"- {_literal(item['path'])} — {item['reason']}" for item in report["omitted"])
     return "\n".join(lines).rstrip() + "\n"
